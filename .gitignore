@@ -1,0 +1,67 @@
+# Build results
+bin/
+obj/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Visual Studio files
+.vs/
+.vscode/
+
+# Rider files
+.idea/
+
+# ASP.NET Scaffolding
+ScaffoldingReadMe.txt
+
+# DotCover
+*.dotCover
+
+# NCrunch
+*.ncrunch*
+.*crunch*.local.xml
+
+# MSTest test Results
+TestResults/
+[Bb]uild[Ll]og.*
+
+# NUnit
+*.VisualState.xml
+TestResult.xml
+nunit-*.xml
+
+# Resharper
+_ReSharper*/
+*.[Rr]e[Ss]harper
+
+# Azure Pipelines
+.vsts/
+
+# Local history for Visual Studio Code
+.history/
+
+# Others
+*.dbmdl
+*.bak
+*.log
+*.tlog
+*.cache
+*.pdb
+*.mdb
+
+# Entity Framework
+Migrations/
+
+# Mac files
+.DS_Store
+
+# Windows image file caches
+Thumbs.db
+
+# Rider
+.idea/
+*.sln.iml
