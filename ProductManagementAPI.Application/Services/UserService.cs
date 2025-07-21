@@ -2,7 +2,7 @@
 using ProductManagementAPI.Application.DTOs.Users;
 using ProductManagementAPI.Domain.Entities;
 using ProductManagementAPI.Infrastructure.Data;
-using System;
+using ProductManagementAPI.Application.Interfaces;
 
 public class UserService : IUserService
 {

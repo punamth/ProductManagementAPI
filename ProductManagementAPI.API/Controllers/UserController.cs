@@ -1,30 +1,33 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using MediatR;
 using ProductManagementAPI.Application.DTOs.Users;
+using ProductManagementAPI.Application.Users.Queries;
+using ProductManagementAPI.Application.Users.Commands;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize] // Protect all endpoints in this controller
+[Authorize]
 public class UserController : ControllerBase
 {
-    private readonly IUserService _service;
+    private readonly IMediator _mediator;
 
-    public UserController(IUserService service)
+    public UserController(IMediator mediator)
     {
-        _service = service;
+        _mediator = mediator;
     }
 
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
-        var users = await _service.GetAllAsync();
+        var users = await _mediator.Send(new GetAllUsersQuery());
         return Ok(users);
     }
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(int id)
     {
-        var user = await _service.GetByIdAsync(id);
+        var user = await _mediator.Send(new GetUserByIdQuery(id));
         if (user == null) return NotFound();
         return Ok(user);
     }
@@ -32,7 +35,7 @@ public class UserController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(int id, [FromBody] UpdateUserDto dto)
     {
-        var updated = await _service.UpdateAsync(id, dto);
+        var updated = await _mediator.Send(new UpdateUserCommand(id, dto));
         if (!updated) return NotFound();
         return NoContent();
     }
@@ -40,7 +43,7 @@ public class UserController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
-        var deleted = await _service.DeleteAsync(id);
+        var deleted = await _mediator.Send(new DeleteUserCommand(id));
         if (!deleted) return NotFound();
         return NoContent();
     }

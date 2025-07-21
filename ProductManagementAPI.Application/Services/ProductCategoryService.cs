@@ -2,7 +2,7 @@
 using ProductManagementAPI.Domain.Entities;
 using ProductManagementAPI.Infrastructure.Data;
 using ProductManagementAPI.Application.DTOs.ProductCategories;
-using System;
+using ProductManagementAPI.Application.Interfaces;
 
 public class ProductCategoryService : IProductCategoryService
 {

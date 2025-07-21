@@ -1,6 +1,10 @@
 ﻿using ProductManagementAPI.Application.DTOs.Auth;
-public interface IAuthService
+
+namespace ProductManagementAPI.Application.Interfaces
 {
-    Task<bool> RegisterAsync(RegisterDto dto);
-    Task<string?> LoginAsync(LoginDto dto);
+    public interface IAuthService
+    {
+        Task<bool> RegisterAsync(RegisterDto dto);
+        Task<string?> LoginAsync(LoginDto dto);
+    }
 }

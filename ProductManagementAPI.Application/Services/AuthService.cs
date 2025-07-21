@@ -3,7 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using ProductManagementAPI.Domain.Entities;
 using ProductManagementAPI.Infrastructure.Data;
-using System;
+using ProductManagementAPI.Application.Interfaces;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;

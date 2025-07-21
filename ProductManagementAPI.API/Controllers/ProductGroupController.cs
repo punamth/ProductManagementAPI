@@ -1,30 +1,33 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using MediatR;
 using ProductManagementAPI.Application.DTOs.ProductGroups;
+using ProductManagementAPI.Application.ProductGroups.Queries;
+using ProductManagementAPI.Application.ProductGroups.Commands;
 
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
 public class ProductGroupController : ControllerBase
 {
-    private readonly IProductGroupService _service;
+    private readonly IMediator _mediator;
 
-    public ProductGroupController(IProductGroupService service)
+    public ProductGroupController(IMediator mediator)
     {
-        _service = service;
+        _mediator = mediator;
     }
 
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
-        var groups = await _service.GetAllAsync();
+        var groups = await _mediator.Send(new GetAllProductGroupsQuery());
         return Ok(groups);
     }
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(int id)
     {
-        var group = await _service.GetByIdAsync(id);
+        var group = await _mediator.Send(new GetProductGroupByIdQuery(id));
         if (group == null) return NotFound();
         return Ok(group);
     }
@@ -32,14 +35,14 @@ public class ProductGroupController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateProductGroupDto dto)
     {
-        var group = await _service.CreateAsync(dto);
+        var group = await _mediator.Send(new CreateProductGroupCommand(dto));
         return CreatedAtAction(nameof(GetById), new { id = group.Id }, group);
     }
 
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(int id, [FromBody] UpdateProductGroupDto dto)
     {
-        var updated = await _service.UpdateAsync(id, dto);
+        var updated = await _mediator.Send(new UpdateProductGroupCommand(id, dto));
         if (!updated) return NotFound();
         return NoContent();
     }
@@ -47,7 +50,7 @@ public class ProductGroupController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
-        var deleted = await _service.DeleteAsync(id);
+        var deleted = await _mediator.Send(new DeleteProductGroupCommand(id));
         if (!deleted) return NotFound();
         return NoContent();
     }
