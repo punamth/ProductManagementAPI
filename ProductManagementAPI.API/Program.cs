@@ -2,14 +2,16 @@ using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models; // Add this for Swagger JWT support
+using ProductManagementAPI.API.Services;
 using ProductManagementAPI.Application.Interfaces;
 using ProductManagementAPI.Application.Interfaces.Repositories;
-using ProductManagementAPI.Application.Products.Commands; // or any handler from Application
 using ProductManagementAPI.Application.Interfaces.Services;  // Added for UserService
+using ProductManagementAPI.Application.Products.Commands; // or any handler from Application
+using ProductManagementAPI.Application.Services;
 using ProductManagementAPI.Infrastructure.Data;
 using ProductManagementAPI.Infrastructure.Repositories;
 using System.Text;
-using ProductManagementAPI.Application.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,7 +26,29 @@ builder.Services.AddControllers();
 
 // 3. Add Swagger for API documentation/testing
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "ProductManagementAPI.API", Version = "v1" });
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Description = "JWT Authorization header using the Bearer scheme. Example: 'Bearer {token}'",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer"
+    });
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement{
+        {
+            new OpenApiSecurityScheme{
+                Reference = new OpenApiReference{
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[]{}
+        }
+    });
+});
 
 // 4. Add CORS
 builder.Services.AddCors(options =>
@@ -79,6 +103,7 @@ builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IProductCategoryRepository, ProductCategoryRepository>();
 builder.Services.AddScoped<IProductGroupRepository, ProductGroupRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddSingleton<IJwtTokenGenerator, JwtTokenGenerator>();
 
 var app = builder.Build();
 
