@@ -1,8 +1,6 @@
 using MediatR;
 using ProductManagementAPI.Application.DTOs.ProductCategories;
 using ProductManagementAPI.Application.Interfaces;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace ProductManagementAPI.Application.ProductCategories.Commands
 {

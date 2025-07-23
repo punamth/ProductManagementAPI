@@ -1,38 +1,37 @@
-﻿using Microsoft.EntityFrameworkCore;
-using ProductManagementAPI.Domain.Entities;
-using ProductManagementAPI.Infrastructure.Data;
-using ProductManagementAPI.Application.DTOs.Products;
+﻿using ProductManagementAPI.Application.DTOs.Products;
 using ProductManagementAPI.Application.Interfaces;
+using ProductManagementAPI.Application.Interfaces.Repositories;
+using ProductManagementAPI.Domain.Entities;
 
 public class ProductService : IProductService
 {
-    private readonly AppDbContext _context;
+    private readonly IProductRepository _productRepository;
 
-    public ProductService(AppDbContext context)
+    public ProductService(IProductRepository productRepository)
     {
-        _context = context;
+        _productRepository = productRepository;
     }
 
     public async Task<IEnumerable<ProductDto>> GetAllAsync()
     {
-        return await _context.Products
-            .Select(p => new ProductDto
-            {
-                Id = p.Id,
-                CategoryId = p.CategoryId,
-                Name = p.Name,
-                Sku = p.Sku,
-                Price = p.Price,
-                StockQuantity = p.StockQuantity,
-                Description = p.Description,
-                CreatedAt = p.CreatedAt
-            })
-            .ToListAsync();
+        var products = await _productRepository.GetAllAsync();
+
+        return products.Select(p => new ProductDto
+        {
+            Id = p.Id,
+            CategoryId = p.CategoryId,
+            Name = p.Name,
+            Sku = p.Sku,
+            Price = p.Price,
+            StockQuantity = p.StockQuantity,
+            Description = p.Description,
+            CreatedAt = p.CreatedAt
+        });
     }
 
     public async Task<ProductDto?> GetByIdAsync(int id)
     {
-        var product = await _context.Products.FindAsync(id);
+        var product = await _productRepository.GetByIdAsync(id);
         if (product == null) return null;
 
         return new ProductDto
@@ -60,8 +59,8 @@ public class ProductService : IProductService
             Description = dto.Description,
             CreatedAt = DateTime.UtcNow
         };
-        _context.Products.Add(product);
-        await _context.SaveChangesAsync();
+
+        await _productRepository.AddAsync(product);
 
         return new ProductDto
         {
@@ -78,7 +77,7 @@ public class ProductService : IProductService
 
     public async Task<bool> UpdateAsync(int id, UpdateProductDto dto)
     {
-        var product = await _context.Products.FindAsync(id);
+        var product = await _productRepository.GetByIdAsync(id);
         if (product == null) return false;
 
         if (dto.CategoryId.HasValue) product.CategoryId = dto.CategoryId.Value;
@@ -88,17 +87,16 @@ public class ProductService : IProductService
         if (dto.StockQuantity.HasValue) product.StockQuantity = dto.StockQuantity.Value;
         if (dto.Description != null) product.Description = dto.Description;
 
-        await _context.SaveChangesAsync();
+        await _productRepository.UpdateAsync(product);
         return true;
     }
 
     public async Task<bool> DeleteAsync(int id)
     {
-        var product = await _context.Products.FindAsync(id);
+        var product = await _productRepository.GetByIdAsync(id);
         if (product == null) return false;
 
-        _context.Products.Remove(product);
-        await _context.SaveChangesAsync();
+        await _productRepository.DeleteAsync(id);
         return true;
     }
 }

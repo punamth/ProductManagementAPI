@@ -1,28 +1,21 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.IdentityModel.Tokens;
-using ProductManagementAPI.Domain.Entities;
-using ProductManagementAPI.Infrastructure.Data;
-using ProductManagementAPI.Application.Interfaces;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
+﻿using ProductManagementAPI.Domain.Entities;
+using ProductManagementAPI.Application.Interfaces.Services;
+using ProductManagementAPI.Application.Interfaces.Repositories;
 using ProductManagementAPI.Application.DTOs.Auth;
 
 public class AuthService : IAuthService
 {
-    private readonly AppDbContext _context;
-    private readonly IConfiguration _config;
+    private readonly IUserRepository _userRepository;
 
-    public AuthService(AppDbContext context, IConfiguration config)
+    public AuthService(IUserRepository userRepository)
     {
-        _context = context;
-        _config = config;
+        _userRepository = userRepository;
     }
 
     public async Task<bool> RegisterAsync(RegisterDto dto)
     {
-        if (await _context.Users.AnyAsync(u => u.Username == dto.Username))
+        var existingUser = (await _userRepository.GetAllAsync()).Any(u => u.Username == dto.Username);
+        if (existingUser)
             return false;
 
         CreatePasswordHash(dto.Password, out byte[] hash, out byte[] salt);
@@ -36,34 +29,25 @@ public class AuthService : IAuthService
             CreatedAt = DateTime.UtcNow
         };
 
-        _context.Users.Add(user);
-        await _context.SaveChangesAsync();
+        await _userRepository.AddAsync(user);
         return true;
+    }
+
+    public async Task<User?> ValidateUserAsync(LoginDto dto)
+    {
+        var user = (await _userRepository.GetAllAsync()).SingleOrDefault(u => u.Username == dto.Username);
+        if (user == null || !VerifyPasswordHash(dto.Password, user.PasswordHash, user.PasswordSalt))
+            return null;
+        return user;
     }
 
     public async Task<string?> LoginAsync(LoginDto dto)
     {
-        var user = await _context.Users.SingleOrDefaultAsync(u => u.Username == dto.Username);
-        if (user == null || !VerifyPasswordHash(dto.Password, user.PasswordHash, user.PasswordSalt))
+        var user = await ValidateUserAsync(dto);
+        if (user == null)
             return null;
-
-        // Generate JWT
-        var tokenHandler = new JwtSecurityTokenHandler();
-        var key = Encoding.UTF8.GetBytes(_config["Jwt:Key"]);
-        var tokenDescriptor = new SecurityTokenDescriptor
-        {
-            Subject = new ClaimsIdentity(new[]
-            {
-                new Claim(ClaimTypes.Name, user.Username),
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
-            }),
-            Expires = DateTime.UtcNow.AddHours(2),
-            Issuer = _config["Jwt:Issuer"],
-            Audience = _config["Jwt:Audience"],
-            SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
-        };
-        var token = tokenHandler.CreateToken(tokenDescriptor);
-        return tokenHandler.WriteToken(token);
+        // JWT generation should be handled in the API layer, so return null or throw NotImplementedException if needed
+        return null;
     }
 
     private void CreatePasswordHash(string password, out byte[] hash, out byte[] salt)
@@ -71,7 +55,7 @@ public class AuthService : IAuthService
         using (var hmac = new System.Security.Cryptography.HMACSHA512())
         {
             salt = hmac.Key;
-            hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(password));
+            hash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
         }
     }
 
@@ -79,7 +63,7 @@ public class AuthService : IAuthService
     {
         using (var hmac = new System.Security.Cryptography.HMACSHA512(salt))
         {
-            var computedHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(password));
+            var computedHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
             return computedHash.SequenceEqual(hash);
         }
     }

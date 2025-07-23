@@ -1,8 +1,5 @@
 using MediatR;
-using ProductManagementAPI.Application.DTOs.Auth;
-using ProductManagementAPI.Application.Interfaces;
-using System.Threading;
-using System.Threading.Tasks;
+using ProductManagementAPI.Application.Interfaces.Services;
 
 namespace ProductManagementAPI.Application.Auth.Commands
 {

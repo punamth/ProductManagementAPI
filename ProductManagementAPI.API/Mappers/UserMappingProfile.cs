@@ -8,8 +8,11 @@ namespace ProductManagementAPI.API.Mappers
     {
         public UserMappingProfile()
         {
-            CreateMap<User, UserDto>();
-            CreateMap<UpdateUserDto, User>();
+            CreateMap<User, UserDto>().ReverseMap();
+            CreateMap<UpdateUserDto, User>()
+                .ForMember(dest => dest.PasswordHash, opt => opt.Ignore())
+                .ForMember(dest => dest.PasswordSalt, opt => opt.Ignore())
+                .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
         }
     }
 }

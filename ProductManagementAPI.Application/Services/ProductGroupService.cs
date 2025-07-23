@@ -1,84 +1,54 @@
-﻿using Microsoft.EntityFrameworkCore;
-using ProductManagementAPI.Domain.Entities;
-using ProductManagementAPI.Infrastructure.Data;
+﻿using AutoMapper;
 using ProductManagementAPI.Application.DTOs.ProductGroups;
 using ProductManagementAPI.Application.Interfaces;
+using ProductManagementAPI.Application.Interfaces.Repositories;
+using ProductManagementAPI.Domain.Entities;
 
 public class ProductGroupService : IProductGroupService
 {
-    private readonly AppDbContext _context;
+    private readonly IProductGroupRepository _repository;
+    private readonly IMapper _mapper;
 
-    public ProductGroupService(AppDbContext context)
+    public ProductGroupService(IProductGroupRepository repository, IMapper mapper)
     {
-        _context = context;
+        _repository = repository;
+        _mapper = mapper;
     }
 
     public async Task<IEnumerable<ProductGroupDto>> GetAllAsync()
     {
-        return await _context.ProductGroups
-            .Select(g => new ProductGroupDto
-            {
-                Id = g.Id,
-                Name = g.Name,
-                Description = g.Description,
-                CreatedAt = g.CreatedAt
-            })
-            .ToListAsync();
+        var groups = await _repository.GetAllAsync();
+        return _mapper.Map<IEnumerable<ProductGroupDto>>(groups);
     }
 
     public async Task<ProductGroupDto?> GetByIdAsync(int id)
     {
-        var group = await _context.ProductGroups.FindAsync(id);
-        if (group == null) return null;
-
-        return new ProductGroupDto
-        {
-            Id = group.Id,
-            Name = group.Name,
-            Description = group.Description,
-            CreatedAt = group.CreatedAt
-        };
+        var group = await _repository.GetByIdAsync(id);
+        return group == null ? null : _mapper.Map<ProductGroupDto>(group);
     }
 
     public async Task<ProductGroupDto> CreateAsync(CreateProductGroupDto dto)
     {
-        var group = new ProductGroup
-        {
-            Name = dto.Name,
-            Description = dto.Description,
-            CreatedAt = DateTime.UtcNow
-        };
-        _context.ProductGroups.Add(group);
-        await _context.SaveChangesAsync();
-
-        return new ProductGroupDto
-        {
-            Id = group.Id,
-            Name = group.Name,
-            Description = group.Description,
-            CreatedAt = group.CreatedAt
-        };
+        var group = _mapper.Map<ProductGroup>(dto);
+        group.CreatedAt = DateTime.UtcNow;
+        await _repository.AddAsync(group);
+        return _mapper.Map<ProductGroupDto>(group);
     }
 
     public async Task<bool> UpdateAsync(int id, UpdateProductGroupDto dto)
     {
-        var group = await _context.ProductGroups.FindAsync(id);
+        var group = await _repository.GetByIdAsync(id);
         if (group == null) return false;
-
-        if (dto.Name != null) group.Name = dto.Name;
-        if (dto.Description != null) group.Description = dto.Description;
-
-        await _context.SaveChangesAsync();
+        _mapper.Map(dto, group);
+        await _repository.UpdateAsync(group);
         return true;
     }
 
     public async Task<bool> DeleteAsync(int id)
     {
-        var group = await _context.ProductGroups.FindAsync(id);
+        var group = await _repository.GetByIdAsync(id);
         if (group == null) return false;
-
-        _context.ProductGroups.Remove(group);
-        await _context.SaveChangesAsync();
+        await _repository.DeleteAsync(id);
         return true;
     }
 }

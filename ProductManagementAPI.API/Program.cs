@@ -1,9 +1,15 @@
+using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using ProductManagementAPI.Application.Interfaces;
+using ProductManagementAPI.Application.Interfaces.Repositories;
+using ProductManagementAPI.Application.Products.Commands; // or any handler from Application
+using ProductManagementAPI.Application.Interfaces.Services;  // Added for UserService
 using ProductManagementAPI.Infrastructure.Data;
+using ProductManagementAPI.Infrastructure.Repositories;
 using System.Text;
-using MediatR;
+using ProductManagementAPI.Application.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -57,14 +63,22 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddAuthorization();
 
 // 6. Register MediatR
-builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
+builder.Services.AddMediatR(cfg =>
+    cfg.RegisterServicesFromAssembly(typeof(CreateProductCommandHandler).Assembly));
 
-// Register your services here, for example:
-// builder.Services.AddScoped<IProductService, ProductService>();
-// builder.Services.AddScoped<IProductGroupService, ProductGroupService>();
-// builder.Services.AddScoped<IProductCategoryService, ProductCategoryService>();
-// builder.Services.AddScoped<IUserService, UserService>();
-// builder.Services.AddScoped<IAuthService, AuthService>();
+// Register AutoMapper
+builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+
+//Register your services here
+builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<IProductGroupService, ProductGroupService>();
+builder.Services.AddScoped<IProductCategoryService, ProductCategoryService>();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
+builder.Services.AddScoped<IProductCategoryRepository, ProductCategoryRepository>();
+builder.Services.AddScoped<IProductGroupRepository, ProductGroupRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
 
 var app = builder.Build();
 
