@@ -53,8 +53,6 @@ _ReSharper*/
 *.pdb
 *.mdb
 
-# Entity Framework
-Migrations/
 
 # Mac files
 .DS_Store
