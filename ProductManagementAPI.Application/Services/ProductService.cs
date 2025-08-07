@@ -60,4 +60,13 @@ public class ProductService : IProductService
         await _productRepository.DeleteAsync(id);
         return true;
     }
+
+    public async Task<bool> UpdateImageFileNameAsync(int productId, string imageFileName)
+    {
+        var product = await _productRepository.GetByIdAsync(productId);
+        if (product == null) return false;
+        await _productRepository.UpdateImageFileNameAsync(productId, imageFileName);
+        return true;
+    }
+
 }

@@ -13,5 +13,6 @@
 
         // Navigation property
         public ProductCategory? Category { get; set; }
+        public string? ImageFileName { get; set; }
     }
 }

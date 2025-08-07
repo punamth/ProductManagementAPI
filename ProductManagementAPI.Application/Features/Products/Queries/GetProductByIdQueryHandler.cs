@@ -1,22 +1,23 @@
 using MediatR;
-using ProductManagementAPI.Application.DTOs.ProductCategories;
+using ProductManagementAPI.Application.DTOs.Products;
 using ProductManagementAPI.Application.Interfaces;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ProductManagementAPI.Application.ProductCategories.Queries
+namespace ProductManagementAPI.Application.Products.Queries
 {
-    public class GetAllProductCategoriesQueryHandler : IRequestHandler<GetAllProductCategoriesQuery, IEnumerable<ProductCategoryDto>>
+    public class GetProductByIdQueryHandler : IRequestHandler<GetProductByIdQuery, ProductDto?>
     {
-        private readonly IProductCategoryService _service;
-        public GetAllProductCategoriesQueryHandler(IProductCategoryService service)
+        private readonly IProductService _productService;
+        
+        public GetProductByIdQueryHandler(IProductService productService)
         {
-            _service = service;
+            _productService = productService;
         }
-        public async Task<IEnumerable<ProductCategoryDto>> Handle(GetAllProductCategoriesQuery request, CancellationToken cancellationToken)
+        
+        public async Task<ProductDto?> Handle(GetProductByIdQuery request, CancellationToken cancellationToken)
         {
-            return await _service.GetAllAsync();
+            return await _productService.GetByIdAsync(request.Id);
         }
     }
 } 

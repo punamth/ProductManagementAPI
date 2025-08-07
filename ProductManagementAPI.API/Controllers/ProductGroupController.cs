@@ -18,6 +18,7 @@ public class ProductGroupController : ControllerBase
     }
 
     [HttpGet]
+    [AllowAnonymous]
     public async Task<IActionResult> GetAll()
     {
         var groups = await _mediator.Send(new GetAllProductGroupsQuery());
@@ -25,6 +26,7 @@ public class ProductGroupController : ControllerBase
     }
 
     [HttpGet("{id}")]
+    [AllowAnonymous]
     public async Task<IActionResult> GetById(int id)
     {
         var group = await _mediator.Send(new GetProductGroupByIdQuery(id));

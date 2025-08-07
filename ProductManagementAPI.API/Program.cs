@@ -2,12 +2,12 @@ using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models; // Add this for Swagger JWT support
+using Microsoft.OpenApi.Models;
 using ProductManagementAPI.API.Services;
 using ProductManagementAPI.Application.Interfaces;
 using ProductManagementAPI.Application.Interfaces.Repositories;
-using ProductManagementAPI.Application.Interfaces.Services;  // Added for UserService
-using ProductManagementAPI.Application.Products.Commands; // or any handler from Application
+using ProductManagementAPI.Application.Interfaces.Services;
+using ProductManagementAPI.Application.Products.Commands;
 using ProductManagementAPI.Application.Services;
 using ProductManagementAPI.Infrastructure.Data;
 using ProductManagementAPI.Infrastructure.Repositories;
@@ -50,14 +50,31 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-// 4. Add CORS
+// 4. Add CORS - Updated for frontend support
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowFrontend",
-        policy => policy
-            .WithOrigins("http://localhost:3000") // Change to your frontend's URL if needed
+    options.AddDefaultPolicy(policy =>
+    {
+        if (builder.Environment.IsDevelopment())
+        {
+            // Development: Allow specific origins with credentials
+            policy.WithOrigins(
+                "http://localhost:5174",  
+                "http://localhost:5173"
+            )
             .AllowAnyHeader()
-            .AllowAnyMethod());
+            .AllowAnyMethod()
+            .AllowCredentials();
+        }
+        else
+        {
+            // Production: Configure specific domains
+            policy.WithOrigins("https://yourdomain.com")
+                  .AllowAnyHeader()
+                  .AllowAnyMethod();
+                  
+        }
+    });
 });
 
 // 5. Configure JWT Authentication
@@ -86,14 +103,23 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
-// 6. Register MediatR
+// 6. Register MediatR - Scan all assemblies
 builder.Services.AddMediatR(cfg =>
-    cfg.RegisterServicesFromAssembly(typeof(CreateProductCommandHandler).Assembly));
+{
+    var assemblies = AppDomain.CurrentDomain.GetAssemblies()
+        .Where(a => a.FullName!.Contains("ProductManagementAPI"))
+        .ToArray();
+
+    foreach (var assembly in assemblies)
+    {
+        cfg.RegisterServicesFromAssembly(assembly);
+    }
+});
 
 // Register AutoMapper
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
-//Register your services here
+// Register your services here
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IProductGroupService, ProductGroupService>();
 builder.Services.AddScoped<IProductCategoryService, ProductCategoryService>();
@@ -114,11 +140,15 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+// Static files for serving images
+app.UseStaticFiles();
+
+// CORS must be called before UseHttpsRedirection, UseAuthentication and UseAuthorization
+app.UseCors();
+
 app.UseHttpsRedirection();
 
-app.UseCors("AllowFrontend"); // Use CORS before authentication/authorization
-
-app.UseAuthentication(); // Enable authentication
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

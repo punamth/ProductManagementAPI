@@ -49,5 +49,14 @@ namespace ProductManagementAPI.Infrastructure.Repositories
                 await _context.SaveChangesAsync();
             }
         }
+        public async Task UpdateImageFileNameAsync(int productId, string imageFileName)
+        {
+            var product = await _context.Products.FindAsync(productId);
+            if (product != null)
+            {
+                product.ImageFileName = imageFileName;
+                await _context.SaveChangesAsync();
+            }
+        }
     }
 }

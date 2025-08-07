@@ -7,4 +7,4 @@ namespace ProductManagementAPI.Application.ProductGroups.Queries
     public class GetAllProductGroupsQuery : IRequest<IEnumerable<ProductGroupDto>>
     {
     }
-} 
+}

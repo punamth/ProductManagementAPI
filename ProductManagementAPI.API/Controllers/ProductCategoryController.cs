@@ -18,6 +18,7 @@ public class ProductCategoryController : ControllerBase
     }
 
     [HttpGet]
+    [AllowAnonymous]
     public async Task<IActionResult> GetAll()
     {
         var categories = await _mediator.Send(new GetAllProductCategoriesQuery());
@@ -25,10 +26,10 @@ public class ProductCategoryController : ControllerBase
     }
 
     [HttpGet("{id}")]
+    [AllowAnonymous]
     public async Task<IActionResult> GetById(int id)
     {
         var category = await _mediator.Send(new GetProductCategoryByIdQuery(id));
-        if (category == null) return NotFound();
         return Ok(category);
     }
 

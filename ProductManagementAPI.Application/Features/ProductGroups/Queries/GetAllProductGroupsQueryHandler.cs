@@ -19,4 +19,4 @@ namespace ProductManagementAPI.Application.ProductGroups.Queries
             return await _service.GetAllAsync();
         }
     }
-} 
+}
